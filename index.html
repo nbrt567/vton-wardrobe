@@ -3,43 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VTON E-Gardırop</title>
+    <title>VTON Dolap - Hoş Geldiniz</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Karşılama Sayfasına Özel Tam Ekran Tasarım */
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .karsilama-alani {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            animation: icerikGelisi 0.8s ease-out;
+        }
+
+        @keyframes icerikGelisi {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-ikon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .karsilama-alani h1 {
+            font-size: 3.5rem;
+            color: #2f3640;
+            margin: 0 0 15px 0;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .karsilama-alani p {
+            font-size: 1.2rem;
+            color: #576574;
+            max-width: 600px;
+            margin: 0 0 40px 0;
+            line-height: 1.6;
+        }
+
+        .buton-grubu {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-ana {
+            background: linear-gradient(135deg, #00a8ff, #0097e6);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 168, 255, 0.3);
+        }
+
+        .btn-ana:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(0, 168, 255, 0.4);
+        }
+
+        .btn-ikincil {
+            background: white;
+            color: #00a8ff;
+            padding: 16px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-ikincil:hover {
+            transform: translateY(-3px);
+            color: #0097e6;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .site-footer {
+            text-align: center;
+            padding: 20px;
+            color: #8395a7;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-    <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
-    <div class="nav-links">
-        <a href="index.html">Kıyafet Ekle</a>
-        <a href="wardrobe.php">Dolaba Git</a>
+
+    <div class="karsilama-alani">
+        <div class="logo-ikon">👗✨</div>
+        <h1>VTON Dolap</h1>
+        <p>Yapay zeka destekli dijital gardırobunuz. Kıyafetlerinizi sisteme yükleyin, kategorize edin ve akıllı manken üzerinde kendi kombinlerinizi özgürce oluşturun.</p>
+        
+        <!-- YENİ EKLENEN GİRİŞ FORMU BURAYA GELECEK -->
+        <div style="background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 350px;">
+            <h3 style="margin-top:0; color:#2f3640;">Hesabınıza Giriş Yapın</h3>
+            
+            <form action="login.php" method="POST" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+                <div>
+                    <label style="font-size: 13px; font-weight: bold; color: #576574;">E-posta Adresi</label>
+                    <input type="email" name="email" required style="width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: bold; color: #576574;">Şifre</label>
+                    <input type="password" name="password" required style="width: 100%; padding: 10px; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box;">
+                </div>
+                <button type="submit" class="btn-ana" style="border:none; cursor:pointer; width:100%; padding: 12px; border-radius: 6px;">Giriş Yap ve Dolaba Git</button>
+            </form>
+
+            <div style="margin-top: 20px; font-size: 14px; color: #576574;">
+                Hesabınız yok mu? <a href="#" onclick="document.getElementById('uyeOlModal').style.display='block'; return false;" style="color: #00a8ff; font-weight: bold; text-decoration: none;">Üye Ol</a>
+            </div>
+        </div>
+
+        <!-- Üye Ol Formu Alanı -->
+        <div id="uyeOlModal" style="display:none; margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; max-width: 350px;">
+            <h4 style="margin-top:0; color:#2f3640;">Yeni Hesap Oluştur</h4>
+            <form action="register.php" method="POST" style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
+                <input type="email" name="email" placeholder="E-posta" required style="padding: 8px; border: 1px solid #dcdde1; border-radius: 6px;">
+                <input type="password" name="password" placeholder="Şifre" required style="padding: 8px; border: 1px solid #dcdde1; border-radius: 6px;">
+                <button type="submit" style="background:#4cd137; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">Kayıt Ol</button>
+            </form>
+        </div>
+
     </div>
-</nav>
-    <hr>
 
-<div class="yukleme-alani">
-    <h2>Dolaba Yeni Kıyafet Ekle</h2>
-    <!-- Form etiketine action, method ve enctype eklendi -->
-<form action="upload.php" method="POST" enctype="multipart/form-data">
-    <label for="kiyafet-foto">Kıyafet Fotoğrafı Seç:</label>
-    <!-- name="garment_image" eklendi -->
-    <input type="file" id="kiyafet-foto" name="garment_image" accept="image/png, image/jpeg" required>
-    
-    <br><br>
+    <footer class="site-footer">
+        BR YAZILIM 2026
+    </footer>
 
-    <label for="kategori">Kategori:</label>
-    <!-- name="category" eklendi -->
-    <select id="kategori" name="category">
-        <option value="ust">Üst Giyim (Tişört, Kazak vb.)</option>
-        <option value="alt">Alt Giyim (Pantolon, Etek vb.)</option>
-    </select>
-
-    <br><br>
-
-    <!-- type="submit" olarak güncellendi -->
-    <button type="submit">Sisteme Yükle</button>
-</form>
-</div>
-
-    <p>Kıyafet yükleme ve yapay zeka ile kombin deneme alanı yakında burada olacak. <br> <br> BR YAZILIM 2026 </p>
 </body>
 </html>
