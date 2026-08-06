@@ -39,3 +39,36 @@ button {
 button:hover {
     background-color: #0097e6;
 }
+/* Üst Menü (Navbar) Tasarımı */
+.navbar {
+    background-color: #ffffff;
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-radius: 8px;
+}
+
+.nav-brand {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2f3640;
+    text-decoration: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #00a8ff;
+    font-weight: bold;
+    margin-left: 20px;
+    padding: 8px 15px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-links a:hover {
+    background-color: #00a8ff;
+    color: white;
+}

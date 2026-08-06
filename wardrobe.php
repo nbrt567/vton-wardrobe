@@ -140,11 +140,7 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <body>
-    <div class="baslik-alani">
-        <h2>Sanal Dolabım</h2>
-        <a href="index.html" class="yeni-ekle-btn">+ Yeni Kıyafet Ekle</a>
-    </div>
-
+    
     <div class="dolap-grid">
         <!-- PHP ile kıyafetleri döngüye alıp ekrana yazdırıyoruz -->
         <?php if(count($kiyafetler) > 0): ?>
@@ -169,5 +165,12 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         <?php endif; ?>
     </div>
 </body>
+<nav class="navbar">
+    <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
+    <div class="nav-links">
+        <a href="index.html">Kıyafet Ekle</a>
+        <a href="wardrobe.php">Dolaba Git</a>
+    </div>
+</nav>
 </body>
 </html>
