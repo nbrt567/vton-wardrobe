@@ -13,22 +13,26 @@
 
 <div class="yukleme-alani">
     <h2>Dolaba Yeni Kıyafet Ekle</h2>
-    <form>
-        <label for="kiyafet-foto">Kıyafet Fotoğrafı Seç:</label>
-        <input type="file" id="kiyafet-foto" accept="image/png, image/jpeg">
-        
-        <br><br>
+    <!-- Form etiketine action, method ve enctype eklendi -->
+<form action="upload.php" method="POST" enctype="multipart/form-data">
+    <label for="kiyafet-foto">Kıyafet Fotoğrafı Seç:</label>
+    <!-- name="garment_image" eklendi -->
+    <input type="file" id="kiyafet-foto" name="garment_image" accept="image/png, image/jpeg" required>
+    
+    <br><br>
 
-        <label for="kategori">Kategori:</label>
-        <select id="kategori">
-            <option value="ust">Üst Giyim (Tişört, Kazak vb.)</option>
-            <option value="alt">Alt Giyim (Pantolon, Etek vb.)</option>
-        </select>
+    <label for="kategori">Kategori:</label>
+    <!-- name="category" eklendi -->
+    <select id="kategori" name="category">
+        <option value="ust">Üst Giyim (Tişört, Kazak vb.)</option>
+        <option value="alt">Alt Giyim (Pantolon, Etek vb.)</option>
+    </select>
 
-        <br><br>
+    <br><br>
 
-        <button type="button">Sisteme Yükle</button>
-    </form>
+    <!-- type="submit" olarak güncellendi -->
+    <button type="submit">Sisteme Yükle</button>
+</form>
 </div>
 
     <p>Kıyafet yükleme ve yapay zeka ile kombin deneme alanı yakında burada olacak. <br> <br> BR YAZILIM 2026 </p>
