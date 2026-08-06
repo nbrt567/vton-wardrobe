@@ -154,8 +154,8 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
                     <!-- Ortada ürün fotoğrafı -->
                     <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet">
                     
-                    <!-- En altta seçim butonu -->
-                    <button class="sec-btn">Seç</button>
+                    <!-- En altta seçim butonu (Linke dönüştürüldü ve ID eklendi) -->
+<a href="kombin.php?id=<?php echo $kiyafet['id']; ?>" class="sec-btn" style="text-decoration: none; box-sizing: border-box;">Seç</a>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
@@ -166,7 +166,7 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </body>
 <nav class="navbar">
-    <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
+    <a href="wardrobe.php" class="nav-brand"> VTON Dolap</a>
     <div class="nav-links">
         <a href="index.html">Kıyafet Ekle</a>
         <a href="wardrobe.php">Dolaba Git</a>
