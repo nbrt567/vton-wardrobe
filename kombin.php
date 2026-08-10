@@ -1,49 +1,74 @@
 <?php
 session_start();
 
-$host = 'localhost';
-$dbname = 'vton_wardrobe';
-$kullanici = 'root';
-$sifre = '';
+// Giriş kontrolü
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.html");
+    exit;
+}
 
+$host = 'localhost'; $dbname = 'vton_wardrobe'; $kullanici = 'root'; $sifre = '';
 try {
     $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $kullanici, $sifre);
 } catch(PDOException $e) {
     die("Veritabanı bağlantı hatası: " . $e->getMessage());
 }
 
-// 1. Sepetten Tek Bir Ürün Çıkarma İşlemi
-if (isset($_GET['sil']) && isset($_SESSION['sepet'])) {
-    $silinecek_id = $_GET['sil'];
-    
-    // Array içinde bu kıyafetin ID'sini bul
-    $anahtar = array_search($silinecek_id, $_SESSION['sepet']);
-    
-    // Eğer bulunduysa diziden sil
-    if ($anahtar !== false) {
-        unset($_SESSION['sepet'][$anahtar]);
-        // Dizide boşluk kalmaması için indeksleri yeniden sırala
-        $_SESSION['sepet'] = array_values($_SESSION['sepet']);
+// 1. Sepetten Ürün Çıkarma İşlemi
+if (isset($_GET['cikar'])) {
+    $cikar_id = $_GET['cikar'];
+    if (($key = array_search($cikar_id, $_SESSION['sepet'])) !== false) {
+        unset($_SESSION['sepet'][$key]);
     }
-    
-    // URL'yi temizlemek için sayfayı yenile
     header("Location: kombin.php");
     exit;
 }
 
 // 2. Sepeti Tamamen Boşaltma İşlemi
-if (isset($_GET['temizle'])) {
-    unset($_SESSION['sepet']);
+if (isset($_GET['bosalt'])) {
+    $_SESSION['sepet'] = [];
     header("Location: kombin.php");
     exit;
 }
 
-// 3. Eğer sepette ürün varsa, onları veritabanından çek
-$sepetteki_kiyafetler = [];
-if (isset($_SESSION['sepet']) && count($_SESSION['sepet']) > 0) {
-    $id_listesi = implode(',', $_SESSION['sepet']); 
-    $sorgu = $db->query("SELECT * FROM garments WHERE id IN ($id_listesi)");
-    $sepetteki_kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
+// 3. Sepetteki Ürünleri Veritabanından Çekip Kategorilere Ayırma
+$kombin = [
+    'aksesuar' => [],
+    'dis_giyim' => [],
+    'ust_giyim' => [],
+    'alt_giyim' => [],
+    'ayakkabi' => []
+];
+
+$sepet_sayisi = isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0;
+
+if ($sepet_sayisi > 0) {
+    // Sadece sepetteki id'leri çekmek için SQL sorgusu oluşturuyoruz (Örn: IN (1, 5, 8))
+    $in = str_repeat('?,', count($_SESSION['sepet']) - 1) . '?';
+    $sorgu = $db->prepare("SELECT * FROM garments WHERE id IN ($in)");
+    $sorgu->execute(array_values($_SESSION['sepet']));
+    $urunler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($urunler as $urun) {
+        // Veritabanındaki değeri küçük harfe çevir ve boşlukları temizle
+        $kat = strtolower(trim($urun['category']));
+        
+        // Basit bir eşleştirme haritası
+        if (strpos($kat, 'aksesuar') !== false) {
+            $kombin['aksesuar'][] = $urun;
+        } elseif (strpos($kat, 'dis') !== false || strpos($kat, 'ceket') !== false) {
+            $kombin['dis_giyim'][] = $urun;
+        } elseif (strpos($kat, 'ust') !== false || strpos($kat, 'tisort') !== false) {
+            $kombin['ust_giyim'][] = $urun;
+        } elseif (strpos($kat, 'alt') !== false || strpos($kat, 'pantolon') !== false) {
+            $kombin['alt_giyim'][] = $urun;
+        } elseif (strpos($kat, 'ayakkabi') !== false) {
+            $kombin['ayakkabi'][] = $urun;
+        } else {
+            // Hiçbiri değilse varsayılan olarak üst giyime at
+            $kombin['ust_giyim'][] = $urun;
+        }
+    }
 }
 ?>
 
@@ -52,62 +77,285 @@ if (isset($_SESSION['sepet']) && count($_SESSION['sepet']) > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kombin Sepeti</title>
+    <title>Kombin Panosu - VTON Dolap</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .kombin-alani { max-width: 900px; margin: 0 auto; text-align: center; padding: 40px 20px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .sepet-grid { display: flex; justify-content: center; gap: 20px; margin: 30px 0; flex-wrap: wrap; }
-        .sepet-item { border: 1px solid #dcdde1; border-radius: 8px; padding: 15px; width: 160px; background: #f8f9fa; }
-        .sepet-item img { width: 100%; height: 150px; object-fit: contain; margin-bottom: 10px; }
-        .vton-btn { display: inline-block; background-color: #00a8ff; color: white; padding: 15px 30px; border-radius: 8px; font-size: 18px; font-weight: bold; border: none; cursor: pointer; text-decoration: none; margin-top: 20px; }
-        .vton-btn:hover { background-color: #0097e6; }
-        .sepet-temizle { color: #e84118; text-decoration: none; font-size: 15px; margin-top: 15px; display: inline-block; font-weight: bold; }
-        .sepet-temizle:hover { text-decoration: underline; }
-        /* Yeni Eklenen Silme Butonu Stili */
-        .sil-btn { display: block; margin-top: 10px; padding: 8px; background-color: #ff4757; color: white; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: bold; transition: background-color 0.2s; }
-        .sil-btn:hover { background-color: #ff6b81; }
+        /* Navbar ve Profil Menüsü CSS (Bozulmaması İçin) */
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .profil-dropdown { position: relative; display: inline-block; }
+        .btn-profil { background-color: #00a8ff; color: white !important; padding: 8px 18px; border-radius: 6px; font-weight: bold; text-decoration: none; transition: background 0.3s; display: inline-block; }
+        .btn-profil:hover { background-color: #0097e6; }
+        .profil-menu { display: none; position: absolute; right: 0; top: 100%; background-color: white; min-width: 170px; box-shadow: 0px 10px 25px rgba(0,0,0,0.1); border-radius: 8px; z-index: 9999; padding-top: 5px; overflow: hidden; border: 1px solid #f1f2f6; }
+        .profil-menu a { color: #2f3640 !important; padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; font-weight: bold; transition: background 0.3s; border-bottom: 1px solid #f1f2f6; }
+        .profil-menu a:last-child { border-bottom: none; }
+        .profil-menu a:hover { background-color: #f8f9fa; }
+        .profil-dropdown:hover .profil-menu { display: block; }
+        .profil-menu.kalici-acik { display: block !important; }
+
+        /* Özel Uyarı Modalı */
+        .ozel-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
+        .modal-icerik { background-color: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); max-width: 350px; width: 90%; animation: modalAcilis 0.3s ease-out; }
+        @keyframes modalAcilis { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-icerik h3 { margin-top: 0; color: #2f3640; font-size: 22px; }
+        .modal-icerik p { color: #576574; margin-bottom: 25px; font-weight: bold; }
+        .modal-butonlar { display: flex; gap: 15px; justify-content: center; }
+        .btn-iptal { background-color: #f1f2f6; color: #2f3640; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        .btn-iptal:hover { background-color: #dfe4ea; }
+        .btn-evet { background-color: #ff4757; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; transition: background 0.3s; }
+        .btn-evet:hover { background-color: #ff6b81; }
+
+        /* KOMBİN PANOSU (MANKEN) STİLLERİ */
+        .kombin-container { max-width: 700px; margin: 40px auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.05); text-align: center; }
+        .kombin-container h2 { color: #2f3640; margin-top: 0; }
+        .kombin-container p { color: #576574; margin-bottom: 30px; }
+        
+        .manken-tahtasi {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 15px;
+            border: 2px dashed #dcdde1;
+            margin-bottom: 30px;
+        }
+
+        .katman {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            min-height: 100px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            border: 1px solid #f1f2f6;
+        }
+
+        .katman::before {
+            content: attr(data-isim);
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #2f3640;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .kıyafet-kutu {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            border: 1px solid #e1e8ed;
+            background: #fff;
+            padding: 5px;
+        }
+
+        .kıyafet-kutu img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .kıyafet-kutu .cikar-ikon {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4757;
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .kıyafet-kutu .cikar-ikon:hover { transform: scale(1.15); }
+
+        .bos-mesaj {
+            width: 100%;
+            color: #a4b0be;
+            font-size: 13px;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .buton-grubu { display: flex; flex-direction: column; gap: 15px; }
+        .btn-vton { background: #00a8ff; color: white; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; transition: background 0.3s; box-shadow: 0 4px 15px rgba(0, 168, 255, 0.3); }
+        .btn-vton:hover { background: #0097e6; }
+        
+        .alt-linkler { display: flex; justify-content: center; gap: 20px; font-size: 14px; margin-top: 10px; }
+        .alt-linkler a { color: #576574; text-decoration: none; font-weight: bold; }
+        .alt-linkler a.kirmizi { color: #ff4757; }
+        .alt-linkler a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
+    <!-- Üst Menü -->
     <nav class="navbar">
         <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
         <div class="nav-links">
             <a href="ekle.html">Kıyafet Ekle</a>
             <a href="wardrobe.php">Dolaba Git</a>
-            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0; ?>)</a>
+            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo $sepet_sayisi; ?>)</a>
+            
+            <div class="profil-dropdown">
+                <a href="#" class="btn-profil" id="profilButonu">👤 Profilim</a>
+                <div class="profil-menu" id="profilMenusu">
+                    <a href="profil.php">🔑 Şifre Değiştir</a>
+                    <a href="#" onclick="cikisOnayla(event)" style="color: #ff4757 !important;">🚪 Çıkış Yap</a>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="kombin-alani">
-        <h2>Kombin Sepeti (VTON Test Alanı)</h2>
-        
-        <?php if(count($sepetteki_kiyafetler) > 0): ?>
-            <p>Seçtiğiniz kıyafetler aşağıda listelenmiştir. Hazırsanız manken üzerinde deneyebilirsiniz.</p>
+    <!-- KOMBİN İÇERİĞİ -->
+    <div class="kombin-container">
+        <h2>✨ Kombin Panosu</h2>
+        <p>Seçtiğiniz kıyafetler hiyerarşik olarak dizilmiştir. Eksik parçaları dolabınızdan tamamlayabilirsiniz.</p>
+
+        <?php if ($sepet_sayisi > 0): ?>
             
-            <div class="sepet-grid">
-                <?php foreach($sepetteki_kiyafetler as $kiyafet): ?>
-                    <div class="sepet-item">
-                        <strong><?php echo $kiyafet['category'] == 'ust' ? 'Üst' : 'Alt'; ?></strong>
-                        <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Seçilen Kıyafet">
-                        
-                        <!-- Tekli Silme Butonu -->
-                        <a href="kombin.php?sil=<?php echo $kiyafet['id']; ?>" class="sil-btn">Sepetten Çıkar</a>
-                    </div>
-                <?php endforeach; ?>
+            <div class="manken-tahtasi">
+                
+                <!-- AKSESUAR KATMANI -->
+                <div class="katman" data-isim="Aksesuar (Şapka, Gözlük vb.)">
+                    <?php if(!empty($kombin['aksesuar'])): foreach($kombin['aksesuar'] as $k): ?>
+                        <div class="kıyafet-kutu">
+                            <a href="kombin.php?cikar=<?php echo $k['id']; ?>" class="cikar-ikon">✕</a>
+                            <img src="<?php echo htmlspecialchars($k['image_path']); ?>" alt="Aksesuar">
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div class="bos-mesaj">Bu alana henüz bir parça seçilmedi.</div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- DIŞ GİYİM KATMANI -->
+                <div class="katman" data-isim="Dış Giyim (Ceket, Mont)">
+                    <?php if(!empty($kombin['dis_giyim'])): foreach($kombin['dis_giyim'] as $k): ?>
+                        <div class="kıyafet-kutu">
+                            <a href="kombin.php?cikar=<?php echo $k['id']; ?>" class="cikar-ikon">✕</a>
+                            <img src="<?php echo htmlspecialchars($k['image_path']); ?>" alt="Dış Giyim">
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div class="bos-mesaj">Bu alana henüz bir parça seçilmedi.</div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- ÜST GİYİM KATMANI -->
+                <div class="katman" data-isim="Üst Giyim (Tişört, Gömlek)">
+                    <?php if(!empty($kombin['ust_giyim'])): foreach($kombin['ust_giyim'] as $k): ?>
+                        <div class="kıyafet-kutu">
+                            <a href="kombin.php?cikar=<?php echo $k['id']; ?>" class="cikar-ikon">✕</a>
+                            <img src="<?php echo htmlspecialchars($k['image_path']); ?>" alt="Üst Giyim">
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div class="bos-mesaj">Bu alana henüz bir parça seçilmedi.</div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- ALT GİYİM KATMANI -->
+                <div class="katman" data-isim="Alt Giyim (Pantolon, Etek)">
+                    <?php if(!empty($kombin['alt_giyim'])): foreach($kombin['alt_giyim'] as $k): ?>
+                        <div class="kıyafet-kutu">
+                            <a href="kombin.php?cikar=<?php echo $k['id']; ?>" class="cikar-ikon">✕</a>
+                            <img src="<?php echo htmlspecialchars($k['image_path']); ?>" alt="Alt Giyim">
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div class="bos-mesaj">Bu alana henüz bir parça seçilmedi.</div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- AYAKKABI KATMANI -->
+                <div class="katman" data-isim="Ayakkabı">
+                    <?php if(!empty($kombin['ayakkabi'])): foreach($kombin['ayakkabi'] as $k): ?>
+                        <div class="kıyafet-kutu">
+                            <a href="kombin.php?cikar=<?php echo $k['id']; ?>" class="cikar-ikon">✕</a>
+                            <img src="<?php echo htmlspecialchars($k['image_path']); ?>" alt="Ayakkabı">
+                        </div>
+                    <?php endforeach; else: ?>
+                        <div class="bos-mesaj">Bu alana henüz bir parça seçilmedi.</div>
+                    <?php endif; ?>
+                </div>
+
             </div>
 
-            <button class="vton-btn">✨ Kombini Manken Üzerinde Dene (VTON Başlat)</button>
-            <br><br>
-            <a href="wardrobe.php" class="sepet-temizle" style="color: #7f8fa6;">Dolaba Dön ve Seçime Devam Et</a>
-            <span style="color: #ccc; margin: 0 10px;">|</span>
-            <!-- Komple Sepeti Temizleme Butonu -->
-            <a href="kombin.php?temizle=1" class="sepet-temizle">Sepeti Tamamen Boşalt</a>
-            
+            <div class="buton-grubu">
+                <a href="#" class="btn-vton">✨ Kombini Manken Üzerinde Dene (VTON Başlat)</a>
+                <div class="alt-linkler">
+                    <a href="wardrobe.php">← Dolaba Dön ve Seçime Devam Et</a>
+                    <a href="kombin.php?bosalt=1" class="kirmizi">Sepeti Tamamen Boşalt</a>
+                </div>
+            </div>
+
         <?php else: ?>
-            <p>Sepetinizde henüz kıyafet yok. Manken üzerinde deneme yapmak için dolaptan kıyafet seçin.</p>
-            <br>
-            <a href="wardrobe.php" class="vton-btn" style="background-color: #4cd137;">Dolaba Git</a>
+            <div style="padding: 50px 0;">
+                <div style="font-size: 50px; margin-bottom: 20px;">🛒</div>
+                <h3 style="color: #2f3640;">Kombin Sepetiniz Boş</h3>
+                <p style="color: #576574;">Manken üzerinde denemek için dolabınızdan kıyafet seçmelisiniz.</p>
+                <br>
+                <a href="wardrobe.php" class="btn-vton" style="padding: 10px 20px;">Dolaba Git ve Kıyafet Seç</a>
+            </div>
         <?php endif; ?>
     </div>
+
+    <!-- Özel Çıkış Yap Modalı -->
+    <div id="cikisModal" class="ozel-modal">
+        <div class="modal-icerik">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🚪</div>
+            <h3>Çıkış Yap</h3>
+            <p>Hesabınızdan çıkış yapmak istediğinize emin misiniz?</p>
+            <div class="modal-butonlar">
+                <button id="modalIptal" class="btn-iptal">İptal</button>
+                <a href="logout.php" class="btn-evet">Evet, Çıkış Yap</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scriptler -->
+    <script>
+        function cikisOnayla(event) {
+            event.preventDefault();
+            document.getElementById('cikisModal').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('profilButonu');
+            var menu = document.getElementById('profilMenusu');
+
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                menu.classList.toggle('kalici-acik');
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!btn.contains(event.target) && !menu.contains(event.target)) {
+                    menu.classList.remove('kalici-acik');
+                }
+            });
+
+            var modal = document.getElementById('cikisModal');
+            var iptalBtn = document.getElementById('modalIptal');
+
+            iptalBtn.addEventListener('click', function() { modal.style.display = 'none'; });
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) { modal.style.display = 'none'; }
+            });
+        });
+    </script>
 </body>
 </html>

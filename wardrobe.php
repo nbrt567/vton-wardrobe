@@ -1,13 +1,13 @@
 <?php
-<?php
 session_start();
 
-// Eğer kullanıcı giriş yapmamışsa direkt ana sayfaya (giriş ekranna) yönlendir
+// Eğer kullanıcı giriş yapmamışsa direkt ana sayfaya (giriş ekranına) yönlendir
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.html");
     exit;
 }
 
+// 1. Veritabanı Bağlantısı
 $host = 'localhost'; $dbname = 'vton_wardrobe'; $kullanici = 'root'; $sifre = '';
 try {
     $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $kullanici, $sifre);
@@ -15,37 +15,21 @@ try {
 } catch(PDOException $e) {
     die("Veritabanı bağlantı hatası: " . $e->getMessage());
 }
+// Kıyafeti Dolaptan Silme İşlemi
+if (isset($_GET['sil'])) {
+    $sil_id = $_GET['sil'];
+    $user_id = $_SESSION['user_id'];
+    
+    $sil_sorgu = $db->prepare("DELETE FROM garments WHERE id = :id AND user_id = :uid");
+    $sil_sorgu->execute([':id' => $sil_id, ':uid' => $user_id]);
+    
+    header("Location: wardrobe.php");
+    exit;
+}
 
+// 2. Kategori Filtresini Yakala ve Giriş Yapan ID'yi Al
 $secilen_kategori = isset($_GET['kat']) ? $_GET['kat'] : 'tumu';
 $giris_yapan_id = $_SESSION['user_id'];
-
-// Kıyafetleri giriş yapan kullanıcıya göre çek
-if ($secilen_kategori === 'tumu') {
-    $sorgu = $db->prepare("SELECT * FROM garments WHERE user_id = :uid ORDER BY id DESC");
-    $sorgu->execute([':uid' => $giris_yapan_id]);
-} else {
-    $sorgu = $db->prepare("SELECT * FROM garments WHERE user_id = :uid AND category = :kat ORDER BY id DESC");
-    $sorgu->execute([':uid' => $giris_yapan_id, ':kat' => $secilen_kategori]);
-}
-$kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
-?>
-session_start();
-
-// 1. Veritabanı Bağlantısı
-$host = 'localhost';
-$dbname = 'vton_wardrobe';
-$kullanici = 'root';
-$sifre = '';
-
-try {
-    $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $kullanici, $sifre);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Veritabanı bağlantı hatası: " . $e->getMessage());
-}
-
-// 2. Kategori Filtresini Yakala
-$secilen_kategori = isset($_GET['kat']) ? $_GET['kat'] : 'tumu';
 
 // 3. Sepete Ekleme İşlemi
 if (isset($_GET['sepet_ekle'])) {
@@ -58,17 +42,158 @@ if (isset($_GET['sepet_ekle'])) {
     exit;
 }
 
-// 4. Kıyafetleri Filtreye Göre Çek
+// 4. Kıyafetleri giriş yapan kullanıcıya göre çek
 if ($secilen_kategori === 'tumu') {
-    $sorgu = $db->prepare("SELECT * FROM garments WHERE $_SESSION['user_id'] ORDER BY id DESC");
-    $sorgu->execute();
+    $sorgu = $db->prepare("SELECT * FROM garments WHERE user_id = :uid ORDER BY id DESC");
+    $sorgu->execute([':uid' => $giris_yapan_id]);
 } else {
-    $sorgu = $db->prepare("SELECT * FROM garments WHERE $_SESSION['user_id'] AND category = :kat ORDER BY id DESC");
-    $sorgu->execute([':kat' => $secilen_kategori]);
+    $sorgu = $db->prepare("SELECT * FROM garments WHERE user_id = :uid AND category = :kat ORDER BY id DESC");
+    $sorgu->execute([':uid' => $giris_yapan_id, ':kat' => $secilen_kategori]);
 }
 $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <style>
+        /* Kıyafet Kartı ve Hover (Üzerine Gelince) Efekti */
+        .kiyafet-karti {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .kiyafet-karti img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            transition: transform 0.4s ease; /* Fotoğrafın büyüme efekti */
+        }
+
+        /* Mouse üzerine gelince fotoğraf büyür */
+        .kiyafet-karti:hover img {
+            transform: scale(1.12); 
+        }
+
+        /* Dolaptan Sil Butonu (Başlangıçta gizli veya şık durur) */
+        .btn-dolaptan-sil {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 71, 87, 0.9);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* Kartın üzerine gelince sil butonu görünür olur */
+        .kiyafet-karti:hover .btn-dolaptan-sil {
+            opacity: 1;
+        }
+
+        .btn-dolaptan-sil:hover {
+            background-color: #ff4757;
+        }
+        /* Özel Çıkış Modalı Stilleri */
+        .ozel-modal {
+            display: none; /* Başlangıçta gizli */
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Yarı saydam siyah arka plan */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-icerik {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            max-width: 350px;
+            width: 90%;
+            animation: modalAcilis 0.3s ease-out;
+        }
+
+        @keyframes modalAcilis {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icerik h3 { margin-top: 0; color: #2f3640; font-size: 22px; }
+        .modal-icerik p { color: #576574; margin-bottom: 25px; font-weight: bold; }
+        
+        .modal-butonlar { display: flex; gap: 15px; justify-content: center; }
+        
+        .btn-iptal {
+            background-color: #f1f2f6; color: #2f3640; border: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold;
+            cursor: pointer; transition: background 0.3s;
+        }
+        .btn-iptal:hover { background-color: #dfe4ea; }
+        
+        .btn-evet {
+            background-color: #ff4757; color: white; text-decoration: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn-evet:hover { background-color: #ff6b81; }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .profil-dropdown { position: relative; display: inline-block; }
+        
+        .btn-profil {
+            background-color: #00a8ff; color: white !important; padding: 8px 18px;
+            border-radius: 6px; font-weight: bold; text-decoration: none;
+            transition: background 0.3s; display: inline-block;
+        }
+        .btn-profil:hover { background-color: #0097e6; }
+
+        .profil-menu {
+            display: none; position: absolute; right: 0; top: 100%;
+            background-color: white; min-width: 170px;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.1); border-radius: 8px;
+            z-index: 9999;
+            /* Fare kayarken menünün kapanmaması için margin yerine padding kullanıyoruz */
+            margin-top: 0; padding-top: 5px; 
+            overflow: hidden; border: 1px solid #f1f2f6;
+        }
+
+        .profil-menu a {
+            color: #2f3640 !important; padding: 12px 16px; text-decoration: none;
+            display: block; font-size: 14px; font-weight: bold;
+            transition: background 0.3s; border-bottom: 1px solid #f1f2f6;
+        }
+        .profil-menu a:last-child { border-bottom: none; }
+        .profil-menu a:hover { background-color: #f8f9fa; }
+
+        /* Mouse üzerine gelince göster */
+        .profil-dropdown:hover .profil-menu { display: block; }
+        
+        /* Tıklanınca JavaScript ile eklenecek kalıcı sınıf */
+        .profil-menu.kalici-acik { display: block !important; }
+    </style>
+<!-- Kodun geri kalanı buradan itibaren aynı şekilde devam edecek... -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -106,6 +231,15 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
             <a href="ekle.html">Kıyafet Ekle</a>
             <a href="wardrobe.php">Dolaba Git</a>
             <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0; ?>)</a>
+         <!-- Yeni Açılır Profil Menüsü -->
+            <div class="profil-dropdown">
+                <a href="#" class="btn-profil" id="profilButonu">👤 Profilim</a>
+                <div class="profil-menu" id="profilMenusu">
+                    <a href="profil.php">🔑 Şifre Değiştir</a>
+                    <a href="#" onclick="cikisOnayla(event)" style="color: #ff4757 !important;">🚪 Çıkış Yap</a>
+                </div>
+            </div>
+            </div>
         </div>
     </nav>
 
@@ -127,18 +261,77 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         <main class="ana-icerik">
             <div class="dolap-grid">
                 <?php if(count($kiyafetler) > 0): ?>
-                    <?php foreach($kiyafetler as $kiyafet): ?>
-                        <div class="kiyafet-kart">
-                            <!-- Başlık kaldırıldı, sadece fotoğraf ve buton var -->
-                            <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet">
-                            <a href="wardrobe.php?kat=<?php echo $secilen_kategori; ?>&sepet_ekle=<?php echo $kiyafet['id']; ?>" class="sec-btn">Sepete Ekle</a>
-                        </div>
-                    <?php endforeach; ?>
+                   <?php foreach($kiyafetler as $kiyafet): ?>
+        <div class="kiyafet-karti">
+            <!-- Dolaptan Sil Butonu -->
+            <a href="wardrobe.php?sil=<?php echo $kiyafet['id']; ?>" class="btn-dolaptan-sil" onclick="return confirm('Bu kıyafeti dolabınızdan silmek istediğinize emin misiniz?');">🗑️ Sil</a>
+            
+            <!-- Kıyafet Görseli -->
+            <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet">
+            
+            <!-- Sepete Ekle Butonu -->
+            <a href="wardrobe.php?kat=<?php echo $secilen_kategori; ?>&sepet_ekle=<?php echo $kiyafet['id']; ?>" style="margin-top: 15px; width: 100%; background: #2ed573; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; display: block;">Sepete Ekle</a>
+        </div>
+    <?php endforeach; ?>
                 <?php else: ?>
                     <p style="color: #7f8fa6;">Bu kategoride henüz kıyafet bulunmuyor.</p>
                 <?php endif; ?>
             </div>
         </main>
     </div>
-</body>
+    <!-- Özel Çıkış Yap Modalı -->
+    <div id="cikisModal" class="ozel-modal">
+        <div class="modal-icerik">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🚪</div>
+            <h3>Çıkış Yap</h3>
+            <p>Hesabınızdan çıkış yapmak istediğinize emin misiniz?</p>
+            <div class="modal-butonlar">
+                <button id="modalIptal" class="btn-iptal">İptal</button>
+                <a href="logout.php" class="btn-evet">Evet, Çıkış Yap</a>
+            </div>
+        </div>
+    </div>
+    <!-- Profil Menüsü Etkileşim Scripti -->
+    <!-- Profil Menüsü ve Özel Modal Etkileşim Scripti -->
+    <script>
+        // Çıkış yap butonuna tıklanınca özel modalı aç
+        function cikisOnayla(event) {
+            event.preventDefault();
+            document.getElementById('cikisModal').style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Profil Menüsü İşlemleri
+            var btn = document.getElementById('profilButonu');
+            var menu = document.getElementById('profilMenusu');
+
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                menu.classList.toggle('kalici-acik');
+            });
+
+            // Sayfada boş bir yere tıklanırsa menüyü kapat
+            document.addEventListener('click', function(event) {
+                if (!btn.contains(event.target) && !menu.contains(event.target)) {
+                    menu.classList.remove('kalici-acik');
+                }
+            });
+
+            // 2. Modal Kapatma İşlemleri (İptal butonu veya boşluğa tıklayınca)
+            var modal = document.getElementById('cikisModal');
+            var iptalBtn = document.getElementById('modalIptal');
+
+            // İptal butonuna basılınca kutuyu gizle
+            iptalBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // Siyah arka plana basılınca kutuyu gizle
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </html>
