@@ -222,6 +222,39 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         .kiyafet-kart img { width: 100%; height: 200px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; }
         .sec-btn { display: block; width: 100%; background-color: #4cd137; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; box-sizing: border-box; }
         .sec-btn:hover { background-color: #44bd32; }
+        /* Toast Bildirim Tasarımları */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10000;
+        }
+
+        .toast {
+            min-width: 280px;
+            padding: 16px 24px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toast.hide { animation: slideOut 0.4s ease forwards; }
+        .toast.success { background-color: #2ed573; border-left: 6px solid #27ae60; }
+        .toast.error { background-color: #ff4757; border-left: 6px solid #c0392b; }
+
+        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideOut { to { opacity: 0; transform: translateX(100%); } }
     </style>
 </head>
 <body>
@@ -269,8 +302,9 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
             <!-- Kıyafet Görseli -->
             <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet">
             
-            <!-- Sepete Ekle Butonu -->
-            <a href="wardrobe.php?kat=<?php echo $secilen_kategori; ?>&sepet_ekle=<?php echo $kiyafet['id']; ?>" style="margin-top: 15px; width: 100%; background: #2ed573; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; display: block;">Sepete Ekle</a>
+            <!-- YENİ Sepete Ekle Butonu (AJAX Destekli) -->
+            <a href="#" onclick="sepeteEkleAjax(event, <?php echo $kiyafet['id']; ?>)" style="margin-top: 15px; width: 100%; background: #2ed573; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; display: block; transition: background 0.3s;">Sepete Ekle</a>
+            
         </div>
     <?php endforeach; ?>
                 <?php else: ?>
@@ -334,4 +368,44 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
             });
         });
     </script>
+    <!-- Toast Bildirimlerinin Barınacağı Alan -->
+    <div id="toast-container" class="toast-container"></div>
+    <!-- Toast Bildirim Scripti -->
+    <script>
+        // Bildirimi Ekranda Gösteren Fonksiyon
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.classList.add('toast', type);
+
+            toast.innerHTML = `
+                <span>${message}</span>
+                <span style="cursor:pointer; font-weight:bold; margin-left:15px; font-size:16px;" onclick="this.parentElement.remove()">✕</span>
+            `;
+
+            container.appendChild(toast);
+
+            // 3 saniye sonra kaybolur
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => { toast.remove(); }, 400); 
+            }, 3000);
+        }
+
+        // Arka Planda (Sayfa Yenilenmeden) Sepete Ekleme Fonksiyonu
+        function sepeteEkleAjax(event, kiyafetId) {
+            event.preventDefault(); // Sayfanın yukarı zıplamasını ve yenilenmesini engeller
+
+            // Arka planda PHP'ye sepet_ekle komutunu gönderir
+            fetch('wardrobe.php?sepet_ekle=' + kiyafetId)
+                .then(response => {
+                    // İşlem başarılıysa yeşil bildirimi çıkar
+                    showToast('✨ Kıyafet kombin sepetine eklendi!', 'success');
+                })
+                .catch(error => {
+                    showToast('Hata oluştu, tekrar deneyin.', 'error');
+                });
+        }
+    </script>
+    </body>
 </html>
