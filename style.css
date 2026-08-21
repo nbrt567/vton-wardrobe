@@ -72,3 +72,154 @@ button:hover {
     background-color: #00a8ff;
     color: white;
 }
+/* =========================================
+   MOBİL UYUMLULUK (SADECE 768PX VE ALTI)
+   ========================================= */
+@media (max-width: 768px) {
+    
+    /* 1. KÖKTEN ÇÖZÜM: Sağa kaymayı engelle */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    * {
+        box-sizing: border-box !important;
+    }
+
+    /* 2. Üst Menü (Kaydırılabilir Yapı) */
+    nav.navbar {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 20px !important;
+        width: 100% !important;
+        padding: 15px 20px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    nav.navbar > * {
+        flex: 0 0 auto !important;
+    }
+
+    /* 3. Ana Kapsayıcıları Sınırla (Yan yana durmayı iptal et) */
+    .dolap-duzeni, .ana-icerik {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 4. Sol Menüyü Kaydırılabilir Şeride Çevir */
+    .yan-menu {
+        width: 100% !important;
+        margin-bottom: 15px !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important; /* Mobilde gölgeyi kaldırıp sadeleştirebiliriz */
+    }
+
+    .kategori-liste {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+        padding: 10px !important;
+        margin: 0 !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .kategori-liste li {
+        flex: 0 0 auto !important;
+    }
+
+    /* 5. Kartları Ekrana Tam Sığdır (Mobilde 2 Kolon) */
+    .dolap-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px !important;
+        width: 100% !important;
+    }
+} /* =========================================
+   MOBİL UYUMLULUK (SADECE 768PX VE ALTI)
+   ========================================= */
+@media (max-width: 768px) {
+    
+    /* 1. KÖKTEN ÇÖZÜM: Sağa kaymayı engelle */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    * {
+        box-sizing: border-box !important;
+    }
+
+    /* 2. Üst Menü (Kaydırılabilir Yapı) */
+    nav.navbar {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 20px !important;
+        width: 100% !important;
+        padding: 15px 20px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    nav.navbar > * {
+        flex: 0 0 auto !important;
+    }
+
+    /* 3. Ana Kapsayıcıları Sınırla (Yan yana durmayı iptal et) */
+    .dolap-duzeni, .ana-icerik {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 4. Sol Menüyü Kaydırılabilir Şeride Çevir */
+    .yan-menu {
+        width: 100% !important;
+        margin-bottom: 15px !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important; /* Mobilde gölgeyi kaldırıp sadeleştirebiliriz */
+    }
+
+    .kategori-liste {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+        padding: 10px !important;
+        margin: 0 !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .kategori-liste li {
+        flex: 0 0 auto !important;
+    }
+
+    /* 5. Kartları Ekrana Tam Sığdır (Mobilde 2 Kolon) */
+    .dolap-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px !important;
+        width: 100% !important;
+    }
+}
