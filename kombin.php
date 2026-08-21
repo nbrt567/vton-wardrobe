@@ -202,6 +202,64 @@ if ($sepet_sayisi > 0) {
         .alt-linkler a { color: #576574; text-decoration: none; font-weight: bold; }
         .alt-linkler a.kirmizi { color: #ff4757; }
         .alt-linkler a:hover { text-decoration: underline; }
+
+        /* Boş Ekran (Empty State) Tasarımı */
+        .bos-ekran {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dcdde1;
+            margin-top: 20px;
+        }
+
+        .bos-ekran-ikon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: hafifSallanma 3s infinite ease-in-out;
+        }
+
+        .bos-ekran h3 {
+            color: #2f3640;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .bos-ekran p {
+            color: #576574;
+            margin-bottom: 25px;
+            font-size: 15px;
+            max-width: 450px;
+            line-height: 1.5;
+        }
+
+        .btn-harekete-gec {
+            background-color: #00a8ff;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 168, 255, 0.3);
+            display: inline-block;
+        }
+
+        .btn-harekete-gec:hover {
+            background-color: #0097e6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
+        }
+
+        @keyframes hafifSallanma {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
     </style>
 </head>
 <body>
@@ -302,13 +360,13 @@ if ($sepet_sayisi > 0) {
                 </div>
             </div>
 
-        <?php else: ?>
-            <div style="padding: 50px 0;">
-                <div style="font-size: 50px; margin-bottom: 20px;">🛒</div>
-                <h3 style="color: #2f3640;">Kombin Sepetiniz Boş</h3>
-                <p style="color: #576574;">Manken üzerinde denemek için dolabınızdan kıyafet seçmelisiniz.</p>
-                <br>
-                <a href="wardrobe.php" class="btn-vton" style="padding: 10px 20px;">Dolaba Git ve Kıyafet Seç</a>
+       <?php else: ?>
+            <!-- Gelişmiş Boş Ekran (Empty State) -->
+            <div class="bos-ekran">
+                <div class="bos-ekran-ikon">🛒</div>
+                <h3>Kombin Sepetiniz Boş</h3>
+                <p>Manken üzerinde denemek için henüz bir kıyafet seçmediniz. Harika kombinler yaratmak için hemen dolabınıza gidip parçalar seçin!</p>
+                <a href="wardrobe.php" class="btn-harekete-gec">✨ Dolaba Git ve Kıyafet Seç</a>
             </div>
         <?php endif; ?>
     </div>

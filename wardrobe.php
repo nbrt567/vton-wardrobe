@@ -71,18 +71,6 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
             padding: 15px;
         }
 
-        .kiyafet-karti img {
-            width: 100%;
-            height: 200px;
-            object-fit: contain;
-            transition: transform 0.4s ease; /* Fotoğrafın büyüme efekti */
-        }
-
-        /* Mouse üzerine gelince fotoğraf büyür */
-        .kiyafet-karti:hover img {
-            transform: scale(1.12); 
-        }
-
         /* Dolaptan Sil Butonu (Başlangıçta gizli veya şık durur) */
         .btn-dolaptan-sil {
             position: absolute;
@@ -192,6 +180,46 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         
         /* Tıklanınca JavaScript ile eklenecek kalıcı sınıf */
         .profil-menu.kalici-acik { display: block !important; }
+
+        /* İskelet Yükleme (Skeleton) Animasyonu */
+        .resim-tutucu {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .resim-tutucu img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0; /* Fotoğraf yüklenene kadar görünmez */
+            transition: opacity 0.5s ease, transform 0.4s ease;
+        }
+        
+        /* Sadece fotoğraf yüklendiğinde opaklığı 1 yap */
+        .resim-tutucu img.yuklendi {
+            opacity: 1; 
+        }
+
+        .skeleton {
+            background-color: #f1f2f6;
+            background-image: linear-gradient(90deg, #f1f2f6 0px, #ffffff 40px, #f1f2f6 80px);
+            background-size: 200% 100%;
+            animation: parlama 1.5s infinite linear;
+        }
+
+        @keyframes parlama {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Zoom efektinin bozulmaması için güncelledik */
+        .kiyafet-karti:hover .resim-tutucu img {
+            transform: scale(1.12);
+        }
     </style>
 <!-- Kodun geri kalanı buradan itibaren aynı şekilde devam edecek... -->
 <!DOCTYPE html>
@@ -255,6 +283,65 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
 
         @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
         @keyframes slideOut { to { opacity: 0; transform: translateX(100%); } }
+
+        /* Boş Ekran (Empty State) Tasarımı */
+        .bos-ekran {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 2px dashed #e1e8ed;
+            grid-column: 1 / -1; /* Grid içinde tam genişlik kaplaması için */
+        }
+
+        .bos-ekran-ikon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #a4b0be;
+            animation: hafifSallanma 3s infinite ease-in-out;
+        }
+
+        .bos-ekran h3 {
+            color: #2f3640;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .bos-ekran p {
+            color: #7f8fa6;
+            margin-bottom: 25px;
+            font-size: 15px;
+            max-width: 400px;
+        }
+
+        .btn-harekete-gec {
+            background-color: #00a8ff;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 168, 255, 0.3);
+            display: inline-block;
+        }
+
+        .btn-harekete-gec:hover {
+            background-color: #0097e6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
+        }
+
+        @keyframes hafifSallanma {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
     </style>
 </head>
 <body>
@@ -294,22 +381,31 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
         <main class="ana-icerik">
             <div class="dolap-grid">
                 <?php if(count($kiyafetler) > 0): ?>
-                   <?php foreach($kiyafetler as $kiyafet): ?>
+                  <?php foreach($kiyafetler as $kiyafet): ?>
         <div class="kiyafet-karti">
-            <!-- Dolaptan Sil Butonu -->
+            
+            <!-- 1. Dolaptan Sil Butonu -->
             <a href="wardrobe.php?sil=<?php echo $kiyafet['id']; ?>" class="btn-dolaptan-sil" onclick="return confirm('Bu kıyafeti dolabınızdan silmek istediğinize emin misiniz?');">🗑️ Sil</a>
             
-            <!-- Kıyafet Görseli -->
-            <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet">
+            <!-- 2. YENİ: İskelet Tutucu ve Akıllı Görsel -->
+            <div class="resim-tutucu skeleton" id="iskelet-<?php echo $kiyafet['id']; ?>">
+                <img src="<?php echo htmlspecialchars($kiyafet['image_path']); ?>" alt="Kıyafet" onload="resimYuklendi(<?php echo $kiyafet['id']; ?>)">
+            </div>
             
-            <!-- YENİ Sepete Ekle Butonu (AJAX Destekli) -->
-            <a href="#" onclick="sepeteEkleAjax(event, <?php echo $kiyafet['id']; ?>)" style="margin-top: 15px; width: 100%; background: #2ed573; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; display: block; transition: background 0.3s;">Sepete Ekle</a>
+            <!-- 3. Sepete Ekle Butonu (AJAX) -->
+            <a href="#" onclick="sepeteEkleAjax(event, <?php echo $kiyafet['id']; ?>)" style="width: 100%; background: #2ed573; color: white; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; display: block; transition: background 0.3s; margin-top: 15px;">Sepete Ekle</a>
             
         </div>
     <?php endforeach; ?>
                 <?php else: ?>
-                    <p style="color: #7f8fa6;">Bu kategoride henüz kıyafet bulunmuyor.</p>
-                <?php endif; ?>
+        <!-- Gelişmiş Boş Ekran (Empty State) -->
+        <div class="bos-ekran">
+            <div class="bos-ekran-ikon">👕</div>
+            <h3>Dolabınız Çok Boş Görünüyor!</h3>
+            <p>Bu kategoride (veya dolabınızda) henüz hiçbir kıyafet bulunmuyor. Hemen yeni bir parça ekleyerek sanal dolabınızı oluşturmaya başlayın.</p>
+            <a href="ekle.html" class="btn-harekete-gec">✨ İlk Kıyafetini Ekle</a>
+        </div>
+    <?php endif; ?>
             </div>
         </main>
     </div>
@@ -367,6 +463,20 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
                 }
             });
         });
+        // Fotoğraf yüklendiğinde iskelet efektini kaldır
+        function resimYuklendi(id) {
+            const iskeletKutusu = document.getElementById('iskelet-' + id);
+            if (iskeletKutusu) {
+                // Parlama animasyonunu durdur
+                iskeletKutusu.classList.remove('skeleton');
+                
+                // İçindeki görsele 'yuklendi' sınıfını ekleyerek görünür (opacity: 1) yap
+                const resim = iskeletKutusu.querySelector('img');
+                if (resim) {
+                    resim.classList.add('yuklendi');
+                }
+            }
+        }
     </script>
     <!-- Toast Bildirimlerinin Barınacağı Alan -->
     <div id="toast-container" class="toast-container"></div>
