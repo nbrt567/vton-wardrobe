@@ -223,3 +223,41 @@ button:hover {
         width: 100% !important;
     }
 }
+/* =========================================
+   VTON MODAL VE SPINNER STİLLERİ
+   ========================================= */
+.vton-icerik {
+    max-width: 450px !important;
+    position: relative;
+}
+
+.kapat-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #a4b0be;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.kapat-btn:hover {
+    color: #ff4757;
+}
+
+/* Yapay Zeka Yükleme Animasyonu */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #f1f2f6;
+    border-top: 6px solid #00a8ff;
+    border-radius: 50%;
+    animation: vtonSpin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes vtonSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
