@@ -94,14 +94,14 @@ if ($sepet_sayisi > 0) {
 
         /* Özel Uyarı Modalı */
         .ozel-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; }
-        .modal-icerik { background-color: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); max-width: 350px; width: 90%; animation: modalAcilis 0.3s ease-out; }
+        .modal-icerik { background-color: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); max-width: 350px; width: 90%; animation: modalAcilis 0.3s ease-out; position: relative; }
         @keyframes modalAcilis { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-icerik h3 { margin-top: 0; color: #2f3640; font-size: 22px; }
         .modal-icerik p { color: #576574; margin-bottom: 25px; font-weight: bold; }
         .modal-butonlar { display: flex; gap: 15px; justify-content: center; }
         .btn-iptal { background-color: #f1f2f6; color: #2f3640; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
         .btn-iptal:hover { background-color: #dfe4ea; }
-        .btn-evet { background-color: #ff4757; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; transition: background 0.3s; }
+        .btn-evet { background-color: #ff4757; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; transition: background 0.3s; cursor: pointer; border: none;}
         .btn-evet:hover { background-color: #ff6b81; }
 
         /* KOMBİN PANOSU (MANKEN) STİLLERİ */
@@ -251,7 +251,7 @@ if ($sepet_sayisi > 0) {
         }
 
         .btn-harekete-gec:hover {
-            background-color: #0097e6;
+            background-color: #36c5e5;
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0, 168, 255, 0.4);
         }
@@ -260,17 +260,36 @@ if ($sepet_sayisi > 0) {
             0%, 100% { transform: rotate(-5deg); }
             50% { transform: rotate(5deg); }
         }
+
+        /* VTON Yükleme Animasyonu */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f1f2f6;
+            border-top: 6px solid #00a8ff;
+            border-radius: 50%;
+            animation: vtonSpin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes vtonSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <!-- Üst Menü -->
     <!-- Üst Menü -->
     <nav class="navbar">
         <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
         <div class="nav-links">
             <a href="ekle.html">Kıyafet Ekle</a>
             <a href="wardrobe.php">Dolaba Git</a>
-            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo $sepet_sayisi; ?>)</a>
+            
+            <!-- YERLERİ DEĞİŞTİRİLEN İKİ LİNK BURASI -->
             <a href="kaydedilen_kombinler.php" style="color: #00a8ff; font-weight: bold; text-decoration: none;">✨ Kaydedilen Kombinler</a>
+            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0; ?>)</a>
+            
             <div class="profil-dropdown">
                 <a href="#" class="btn-profil" id="profilButonu">👤 Profilim</a>
                 <div class="profil-menu" id="profilMenusu">
@@ -280,7 +299,6 @@ if ($sepet_sayisi > 0) {
             </div>
         </div>
     </nav>
-
     <!-- KOMBİN İÇERİĞİ -->
     <div class="kombin-container">
         <h2>✨ Kombin Panosu</h2>
@@ -371,7 +389,9 @@ if ($sepet_sayisi > 0) {
         <?php endif; ?>
     </div>
 
-    <!-- Özel Çıkış Yap Modalı -->
+    <!-- ========================================== -->
+    <!-- ÖZEL ÇIKIŞ YAP MODALI                      -->
+    <!-- ========================================== -->
     <div id="cikisModal" class="ozel-modal">
         <div class="modal-icerik">
             <div style="font-size: 3rem; margin-bottom: 10px;">🚪</div>
@@ -384,17 +404,69 @@ if ($sepet_sayisi > 0) {
         </div>
     </div>
 
-    <!-- Scriptler -->
+    <!-- ========================================== -->
+    <!-- VTON SİMÜLASYON MODALI                     -->
+    <!-- ========================================== -->
+    <div id="vtonModal" class="ozel-modal">
+        <div class="modal-icerik" style="max-width: 450px;">
+            <span class="kapat-btn" onclick="vtonModalKapat()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #a4b0be;">&times;</span>
+            <h3 id="vtonBaslik">Sanal Kabin (VTON)</h3>
+            
+            <div id="vtonYukleniyor" style="display: none; padding: 30px 0;">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: #576574; font-weight: bold; line-height: 1.5;">
+                    Yapay Zeka Kıyafeti Mankene Giydiriyor... <br>
+                    <small style="color: #a4b0be;">Bu işlem yaklaşık 5-10 saniye sürebilir.</small>
+                </p>
+            </div>
+
+            <div id="vtonSonuc" style="display: none;">
+                <img id="uretilenKombinGorseli" src="https://placehold.co/400x550/00a8ff/ffffff?text=Yapay+Zeka+Manken+Gorseli" alt="VTON Sonuç" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-evet" style="flex: 1; background-color: #2ed573; color:white; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="kombiniKaydet()">💾 Kombini Kaydet</button>
+                    <button class="btn-iptal" style="flex: 1; background-color: #f1f2f6; color:#2f3640; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="vtonModalKapat()">🗑️ Sil / Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- YENİ: BAŞARI (KAYIT TAMAMLANDI) MODALI     -->
+    <!-- ========================================== -->
+    <div id="basariModal" class="ozel-modal">
+        <div class="modal-icerik">
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">✨</div>
+            <h3 style="color: #2ed573; margin-bottom: 10px;">Kombin Başarıyla Kaydedildi!</h3>
+            <p style="margin-bottom: 25px; color: #576574;">Sanal kabindeki bu harika görünüm dolabınıza eklendi.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="kaydedilen_kombinler.php" class="btn-evet" style="background-color: #00a8ff; text-align: center; box-sizing: border-box; width: 100%;">📂 Kombinlerime Git</a>
+                <button onclick="document.getElementById('basariModal').style.display='none';" class="btn-iptal" style="width: 100%; box-sizing: border-box;">🔄 Başka Kombin Oluştur</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODERN TOAST BİLDİRİM KUTUSU (Hatalar için)-->
+    <!-- ========================================== -->
+    <div id="ozelBildirim" class="toast-bildirim">
+        <span id="bildirimMetni"></span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TÜM JAVASCRIPT KODLARI (HATASIZ)           -->
+    <!-- ========================================== -->
     <script>
-        function cikisOnayla(event) {
-            event.preventDefault();
-            document.getElementById('cikisModal').style.display = 'flex';
-        }
+    // 1. PROFİL MENÜSÜ VE ÇIKIŞ İŞLEMLERİ
+    function cikisOnayla(event) {
+        event.preventDefault();
+        document.getElementById('cikisModal').style.display = 'flex';
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('profilButonu');
-            var menu = document.getElementById('profilMenusu');
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('profilButonu');
+        var menu = document.getElementById('profilMenusu');
 
+        if(btn && menu) {
             btn.addEventListener('click', function(event) {
                 event.preventDefault();
                 menu.classList.toggle('kalici-acik');
@@ -405,98 +477,95 @@ if ($sepet_sayisi > 0) {
                     menu.classList.remove('kalici-acik');
                 }
             });
+        }
 
-            var modal = document.getElementById('cikisModal');
-            var iptalBtn = document.getElementById('modalIptal');
+        var modal = document.getElementById('cikisModal');
+        var iptalBtn = document.getElementById('modalIptal');
 
+        if(iptalBtn && modal) {
             iptalBtn.addEventListener('click', function() { modal.style.display = 'none'; });
             window.addEventListener('click', function(event) {
                 if (event.target == modal) { modal.style.display = 'none'; }
             });
-        });
-        // VTON Simülasyonunu Başlatma Fonksiyonu
-function vtonDene() {
-    // 1. Modalı görünür yap ve ekranları sıfırla
-    document.getElementById('vtonModal').style.display = 'flex';
-    document.getElementById('vtonBaslik').innerText = 'Sanal Kabin (VTON)';
-    document.getElementById('vtonYukleniyor').style.display = 'block';
-    document.getElementById('vtonSonuc').style.display = 'none';
-
-    // 2. Yapay Zeka Bekleme Simülasyonu (5 Saniye)
-    setTimeout(function() {
-        // Yükleme animasyonunu gizle
-        document.getElementById('vtonYukleniyor').style.display = 'none';
-        
-        // Sonuç ekranını (Dummy Fotoğraf) göster
-        document.getElementById('vtonSonuc').style.display = 'block';
-        document.getElementById('vtonBaslik').innerText = 'İşte Sonuç!';
-        
-        // (İleride gerçek API'den gelen fotoğraf linkini buradaki img etiketinin src'sine basacağız)
-    }, 5000); // 5000 milisaniye
-}
-
-// Modalı Kapatma Fonksiyonu
-function vtonModalKapat() {
-    document.getElementById('vtonModal').style.display = 'none';
-}
-// Kombini Veritabanına Kaydetme Fonksiyonu (AJAX)
-function kombiniKaydet() {
-    // 1. Ekrandaki üretilmiş görselin linkini al
-    const gorselUrl = document.getElementById('uretilenKombinGorseli').src;
-
-    // 2. Arka planda PHP dosyasına POST isteği gönder
-    fetch('kombin_kaydet.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'gorsel_url=' + encodeURIComponent(gorselUrl)
-    })
-    .then(response => response.text())
-    .then(data => {
-        if(data.trim() === 'basarili') {
-            // Başarılıysa yeşil bildirim ver ve pencereyi kapat
-            showToast('✨ Kombin başarıyla dolabınıza kaydedildi!', 'success');
-            vtonModalKapat();
-        } else {
-            // Hata varsa kırmızı bildirim ver
-            showToast('Kaydedilirken bir hata oluştu.', 'error');
         }
-    })
-    .catch(error => {
-        console.error('Hata:', error);
-        showToast('Sistemsel bir bağlantı hatası oluştu.', 'error');
     });
-}
-    </script>
-    <!-- VTON Simülasyon Modalı -->
-<div id="vtonModal" class="ozel-modal">
-    <div class="modal-icerik vton-icerik">
-        <!-- Çarpı Butonu -->
-        <span class="kapat-btn" onclick="vtonModalKapat()">&times;</span>
-        
-        <h3 id="vtonBaslik">Sanal Kabin (VTON)</h3>
-        
-        <!-- Yükleme (Loading) Ekranı -->
-        <div id="vtonYukleniyor" style="display: none; padding: 30px 0;">
-            <div class="spinner"></div>
-            <p style="margin-top: 20px; color: #576574; font-weight: bold; line-height: 1.5;">
-                Yapay Zeka Kıyafeti Mankene Giydiriyor... <br>
-                <small style="color: #a4b0be;">Bu işlem yaklaşık 5-10 saniye sürebilir.</small>
-            </p>
-        </div>
 
-        <!-- Sonuç Ekranı -->
-        <div id="vtonSonuc" style="display: none;">
-            <img id="uretilenKombinGorseli" src="https://placehold.co/400x550/00a8ff/ffffff?text=Yapay+Zeka+Manken+Gorseli" alt="VTON Sonuç" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+    // 2. MODERN BİLDİRİM (TOAST) FONKSİYONU (Sadece hatalar için kullanılacak)
+    function bildirimGoster(mesaj, tur) {
+        var toast = document.getElementById("ozelBildirim");
+        if(!toast) return; 
+        
+        document.getElementById("bildirimMetni").innerText = mesaj;
+
+        if (tur === 'hata') {
+            toast.classList.add("toast-hata");
+        } else {
+            toast.classList.remove("toast-hata");
+        }
+
+        toast.classList.add("goster");
+        
+        setTimeout(function(){ 
+            toast.classList.remove("goster"); 
+        }, 3500);
+    }
+
+    // 3. VTON (SANAL KABİN) VE KAYDETME İŞLEMLERİ
+    function vtonDene() {
+        document.getElementById('vtonModal').style.display = 'flex';
+        document.getElementById('vtonBaslik').innerText = 'Sanal Kabin (VTON)';
+        document.getElementById('vtonYukleniyor').style.display = 'block';
+        document.getElementById('vtonSonuc').style.display = 'none';
+
+        setTimeout(function() {
+            document.getElementById('vtonYukleniyor').style.display = 'none';
+            document.getElementById('vtonSonuc').style.display = 'block';
+            document.getElementById('vtonBaslik').innerText = 'İşte Sonuç!';
+        }, 5000);
+    }
+
+    function vtonModalKapat() {
+        document.getElementById('vtonModal').style.display = 'none';
+    }
+
+    // Yeni Kombin Kaydetme Fonksiyonu
+    function kombiniKaydet() {
+        console.log("1. Butona tıklandı, işlem başlıyor...");
+        
+        const gorselEl = document.getElementById('uretilenKombinGorseli');
+        
+        if (!gorselEl) {
+            bildirimGoster("HATA: Görsel bulunamadı!", 'hata');
+            return;
+        }
+
+        const gorselUrl = gorselEl.src;
+        console.log("2. Gönderilecek Fotoğraf URL'si:", gorselUrl);
+
+        fetch('kombin_kaydet.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'gorsel_url=' + encodeURIComponent(gorselUrl)
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log("3. Sunucudan gelen cevap:", data);
             
-            <!-- YENİ: İki Seçenekli Buton Grubu -->
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-evet" style="flex: 1; background-color: #2ed573;" onclick="kombiniKaydet()">💾 Kombini Kaydet</button>
-                <button class="btn-iptal" style="flex: 1;" onclick="vtonModalKapat()">🗑️ Sil / Kapat</button>
-            </div>
-        </div>
-    </div>
-</div>
+            if(data.trim() === 'basarili') {
+                // BAŞARILI OLDUĞUNDA YAPILACAKLAR:
+                vtonModalKapat(); // 1. Manken penceresini kapat
+                document.getElementById('basariModal').style.display = 'flex'; // 2. Yeni başarı penceresini ekranın ortasında aç
+            } else {
+                bildirimGoster('Sunucu Hatası: ' + data, 'hata');
+            }
+        })
+        .catch(error => {
+            console.error('Bağlantı Hatası:', error);
+            bildirimGoster('Sistem Hatası oluştu.', 'hata');
+        });
+    }
+    </script>
 </body>
 </html>

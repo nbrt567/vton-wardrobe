@@ -261,3 +261,36 @@ button:hover {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* =========================================
+   ÖZEL TOAST BİLDİRİM TASARIMI
+   ========================================= */
+.toast-bildirim {
+    visibility: hidden;
+    min-width: 280px;
+    background-color: #2ed573; /* Başarı Yeşili */
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px 20px;
+    position: fixed;
+    z-index: 100000;
+    right: 30px;
+    bottom: 30px;
+    font-size: 15px;
+    font-weight: bold;
+    box-shadow: 0 8px 25px rgba(46, 213, 115, 0.4);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.toast-bildirim.goster {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-hata {
+    background-color: #ff4757; /* Hata Kırmızısı */
+    box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+}

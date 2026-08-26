@@ -345,21 +345,23 @@ $kiyafetler = $sorgu->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
+   <!-- Üst Menü -->
     <nav class="navbar">
         <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
         <div class="nav-links">
             <a href="ekle.html">Kıyafet Ekle</a>
             <a href="wardrobe.php">Dolaba Git</a>
-            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0; ?>)</a>
+            
+            <!-- YERLERİ DEĞİŞTİRİLEN İKİ LİNK BURASI -->
             <a href="kaydedilen_kombinler.php" style="color: #00a8ff; font-weight: bold; text-decoration: none;">✨ Kaydedilen Kombinler</a>
-         <!-- Yeni Açılır Profil Menüsü -->
+            <a href="kombin.php" style="color: #ff4757;">🛒 Kombin Sepeti (<?php echo isset($_SESSION['sepet']) ? count($_SESSION['sepet']) : 0; ?>)</a>
+            
             <div class="profil-dropdown">
                 <a href="#" class="btn-profil" id="profilButonu">👤 Profilim</a>
                 <div class="profil-menu" id="profilMenusu">
                     <a href="profil.php">🔑 Şifre Değiştir</a>
                     <a href="#" onclick="cikisOnayla(event)" style="color: #ff4757 !important;">🚪 Çıkış Yap</a>
                 </div>
-            </div>
             </div>
         </div>
     </nav>
