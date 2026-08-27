@@ -1,11 +1,7 @@
 <?php
 session_start();
 
-// Hata gösterme ayarları (gerekirse kapatabilirsin)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Doğrudan veritabanı bağlantısı
+// Veritabanı yapılandırması
 $host = 'localhost';
 $dbname = 'vton_wardrobe';
 $user = 'root';
@@ -15,25 +11,30 @@ try {
     $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $pass);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
-    echo "Veritabanı bağlantı hatası: " . $e->getMessage();
-    exit;
+    // Güvenlik: Canlı ortamda veritabanı hataları dışarıya basılmaz.
+    die("Veritabanı bağlantı hatası.");
 }
 
-// Oturum kontrolü - projende 'user_id' kullanılıyor
-$kullanici_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+// Modern PHP ile oturum kontrolü
+$kullanici_id = $_SESSION['user_id'] ?? null;
 
-// Gelen POST isteğini kontrol et
-if (isset($_POST['gorsel_url']) && $kullanici_id) {
-    $gorsel_url = $_POST['gorsel_url'];
+// Sadece POST isteklerini kabul et ve verileri doğrula
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gorsel_url']) && $kullanici_id) {
+    
+    $gorsel_url = trim($_POST['gorsel_url']);
     
     try {
         $sorgu = $db->prepare("INSERT INTO kaydedilen_kombinler (kullanici_id, gorsel_url) VALUES (?, ?)");
         $sorgu->execute([$kullanici_id, $gorsel_url]);
+        
+        // JavaScript'in (Frontend) beklediği başarılı yanıtı
         echo "basarili";
+        
     } catch (PDOException $e) {
-        echo "Veritabanına ekleme hatası: " . $e->getMessage();
+        // Hata detayını gizle, sadece genel bir mesaj ver
+        echo "Veritabanına ekleme hatası oluştu.";
     }
 } else {
-    echo "Hata: Gerekli veriler eksik veya kullanıcı girişi yapılmamış.";
+    echo "Hata: Gerekli veriler eksik veya yetkisiz işlem.";
 }
 ?>

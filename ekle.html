@@ -6,41 +6,37 @@
     <title>Yeni Kıyafet Ekle - VTON Dolap</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Sadece bu sayfaya özel modern form tasarımları */
         body { background-color: #f5f6fa; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
+        /* Form Konteyner */
         .yukleme-alani { background: white; max-width: 450px; margin: 60px auto; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; }
         .yukleme-alani h2 { margin-top: 0; color: #2f3640; font-size: 24px; margin-bottom: 5px; }
         .alt-baslik { color: #7f8fa6; margin-bottom: 30px; font-size: 15px; }
         
-        /* Özel Dosya Yükleme Alanı */
+        /* Dosya Yükleme Alanı */
         .dosya-kutu { position: relative; margin-bottom: 25px; }
-        /* Çirkin standart butonu görünmez yapıyoruz */
         .gizli-input { opacity: 0; position: absolute; z-index: -1; width: 0.1px; height: 0.1px; }
         
-        /* Yeni, şık yükleme alanı tasarımı */
         .dosya-etiket { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; background-color: #f8f9fa; border: 2px dashed #dcdde1; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; }
         .dosya-etiket:hover { border-color: #00a8ff; background-color: #f1f8ff; }
         .dosya-etiket .ikon { font-size: 40px; margin-bottom: 15px; }
         .dosya-etiket .metin { color: #2f3640; font-weight: 600; font-size: 16px; }
         .dosya-etiket .alt-metin { color: #7f8fa6; font-size: 13px; margin-top: 5px; }
         
-        /* Kategori Seçici (Select) Tasarımı */
+        /* Form Elemanları */
         .form-grup { text-align: left; margin-bottom: 30px; }
         .form-grup label { display: block; margin-bottom: 10px; color: #2f3640; font-weight: bold; font-size: 14px; }
         .ozel-select { width: 100%; padding: 14px 15px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 15px; color: #2f3640; background-color: #fff; cursor: pointer; transition: border-color 0.3s; box-sizing: border-box; }
         .ozel-select:focus { border-color: #00a8ff; outline: none; }
         
-        /* Yükle Butonu */
+        /* Buton & Footer */
         .btn-yukle { width: 100%; padding: 16px; background: linear-gradient(135deg, #00a8ff, #0097e6); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .btn-yukle:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 168, 255, 0.3); }
-        
-        /* Footer (İmza) */
         .site-footer { text-align: center; color: #b2bec3; font-size: 13px; margin-top: 40px; padding-bottom: 20px; font-weight: bold; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-    <!-- Üst Menü -->
+    
     <nav class="navbar">
         <a href="wardrobe.php" class="nav-brand">👗 VTON Dolap</a>
         <div class="nav-links">
@@ -50,29 +46,24 @@
         </div>
     </nav>
 
-    <!-- Modern Yükleme Formu -->
-    <div class="yukleme-alani">
+    <main class="yukleme-alani">
         <h2>Dolaba Yeni Kıyafet Ekle</h2>
         <p class="alt-baslik">Gardırobunu dijitalleştirmeye başla</p>
 
-        <!-- ÖNEMLİ NOT: 'action' kısmındaki upload.php'yi ve input 'name' değerini kendi PHP kodunla uyumlu hale getirmelisin -->
         <form action="upload.php" method="POST" enctype="multipart/form-data">
             
-            <!-- Modern Dosya Seçici -->
             <div class="dosya-kutu">
-                <!-- Eğer upload.php'de resmi 'kiyafet_resmi' adıyla çekiyorsan name="kiyafet_resmi" yap, 'image' ise 'image' kalsın -->
                 <input type="file" id="dosyaSec" name="image" accept="image/*" class="gizli-input" required>
-                <label for="dosyaSec" class="dosya-etiket">
+                <label for="dosyaSec" class="dosya-etiket" id="dosyaEtiket">
                     <span class="ikon">📸</span>
                     <span class="metin" id="dosyaAdi">Fotoğraf Seç veya Sürükle</span>
-                    <span class="alt-metin">Maksimum 5MB (PNG, JPG)</span>
+                    <span class="alt-metin">Maksimum 5MB (PNG, JPG, JPEG)</span>
                 </label>
             </div>
 
-            <!-- Modern Kategori Seçici -->
             <div class="form-grup">
                 <label for="kategori">Kategori:</label>
-                <select id="kategori" name="category" class="ozel-select">
+                <select id="kategori" name="category" class="ozel-select" required>
                     <option value="ust">Üst Giyim (Tişört, Kazak vb.)</option>
                     <option value="alt">Alt Giyim (Pantolon, Etek vb.)</option>
                     <option value="dis">Dış Giyim (Ceket, Mont vb.)</option>
@@ -83,23 +74,29 @@
 
             <button type="submit" class="btn-yukle">✨ Sisteme Yükle</button>
         </form>
-    </div>
+    </main>
 
-    <!-- İmza -->
     <footer class="site-footer">
         <p>BR YAZILIM 2026</p>
     </footer>
 
-    <!-- Seçilen dosyanın adını kutuda göstermek için ufak bir JavaScript dokunuşu -->
     <script>
-        document.getElementById('dosyaSec').addEventListener('change', function(e) {
-            var isim = e.target.files[0] ? e.target.files[0].name : 'Fotoğraf Seç veya Sürükle';
-            document.getElementById('dosyaAdi').textContent = isim;
+        const fileInput = document.getElementById('dosyaSec');
+        const fileNameDisplay = document.getElementById('dosyaAdi');
+        const fileLabel = document.getElementById('dosyaEtiket');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
             
-            // Kullanıcı dosya seçtiğinde kutunun rengini hafifçe değiştirerek görsel geri bildirim verelim
-            if(e.target.files[0]) {
-                document.querySelector('.dosya-etiket').style.borderColor = '#4cd137';
-                document.querySelector('.dosya-etiket').style.backgroundColor = '#f1fdf3';
+            if (file) {
+                fileNameDisplay.textContent = file.name;
+                fileLabel.style.borderColor = '#4cd137';
+                fileLabel.style.backgroundColor = '#f1fdf3';
+            } else {
+                // Kullanıcı dosya seçmeyi iptal ederse varsayılan görünüme dön
+                fileNameDisplay.textContent = 'Fotoğraf Seç veya Sürükle';
+                fileLabel.style.borderColor = '#dcdde1';
+                fileLabel.style.backgroundColor = '#f8f9fa';
             }
         });
     </script>
