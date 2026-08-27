@@ -18,7 +18,7 @@ The modern upload interface where users can upload and categorize new clothing p
 
 ### 4. My Digital Wardrobe & Categories
 The main screen where users view their uploaded clothes in a categorized format:
-<img width="1917" height="972" alt="ana menü" src="https://github.com/user-attachments/assets/1cc5bc3f-0525-496c-8773-e17d8a2db2df" />
+<img width="1917" height="972" alt="ana menü" src="https://github.com/user-attachments/assets/6cfa106b-d750-4100-a3b2-f26e3b0e8560" />
 
 ### 5. Outfit Board & Virtual Fitting Room (VTON)
 The screen where selected items are arranged hierarchically and outfits are tried on using artificial intelligence:
