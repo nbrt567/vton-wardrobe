@@ -455,7 +455,7 @@ if ($sepet_sayisi > 0) {
     <!-- ========================================== -->
     <!-- TÜM JAVASCRIPT KODLARI (HATASIZ)           -->
     <!-- ========================================== -->
-    <script>
+   <script>
     // 1. PROFİL MENÜSÜ VE ÇIKIŞ İŞLEMLERİ
     function cikisOnayla(event) {
         event.preventDefault();
@@ -490,7 +490,7 @@ if ($sepet_sayisi > 0) {
         }
     });
 
-    // 2. MODERN BİLDİRİM (TOAST) FONKSİYONU (Sadece hatalar için kullanılacak)
+    // 2. MODERN BİLDİRİM (TOAST) FONKSİYONU
     function bildirimGoster(mesaj, tur) {
         var toast = document.getElementById("ozelBildirim");
         if(!toast) return; 
@@ -510,25 +510,45 @@ if ($sepet_sayisi > 0) {
         }, 3500);
     }
 
-    // 3. VTON (SANAL KABİN) VE KAYDETME İŞLEMLERİ
+    // 3. FAL.AI VTON BAĞLANTISI (Hugging Face silindi, temiz bağlantı kuruldu)
     function vtonDene() {
         document.getElementById('vtonModal').style.display = 'flex';
-        document.getElementById('vtonBaslik').innerText = 'Sanal Kabin (VTON)';
+        document.getElementById('vtonBaslik').innerText = 'Sanal Kabin (Yapay Zeka İşliyor...)';
         document.getElementById('vtonYukleniyor').style.display = 'block';
         document.getElementById('vtonSonuc').style.display = 'none';
 
-        setTimeout(function() {
+        // Arka plandaki vton_api.php'ye istek atıyoruz (Fal.ai orada çalışacak)
+        fetch('vton_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'istek_var=1' 
+        })
+        .then(response => response.json())
+        .then(data => {
             document.getElementById('vtonYukleniyor').style.display = 'none';
-            document.getElementById('vtonSonuc').style.display = 'block';
-            document.getElementById('vtonBaslik').innerText = 'İşte Sonuç!';
-        }, 5000);
+
+            if (data.status === 'success') {
+                document.getElementById('uretilenKombinGorseli').src = data.output_url;
+                document.getElementById('vtonSonuc').style.display = 'block';
+                document.getElementById('vtonBaslik').innerText = 'İşte Yapay Zeka Sonucu!';
+            } else {
+                alert("Yapay Zeka Hatası: " + data.message);
+                vtonModalKapat();
+            }
+        })
+        .catch(error => {
+            console.error('Bağlantı Hatası:', error);
+            alert('Sistem hatası oluştu, API’ye ulaşılamadı.');
+            vtonModalKapat();
+        });
     }
 
+    // 4. MODAL KAPATMA FONKSİYONU
     function vtonModalKapat() {
         document.getElementById('vtonModal').style.display = 'none';
     }
 
-    // Yeni Kombin Kaydetme Fonksiyonu
+    // 5. YENİ KOMBİN KAYDETME FONKSİYONU
     function kombiniKaydet() {
         console.log("1. Butona tıklandı, işlem başlıyor...");
         
@@ -554,9 +574,8 @@ if ($sepet_sayisi > 0) {
             console.log("3. Sunucudan gelen cevap:", data);
             
             if(data.trim() === 'basarili') {
-                // BAŞARILI OLDUĞUNDA YAPILACAKLAR:
-                vtonModalKapat(); // 1. Manken penceresini kapat
-                document.getElementById('basariModal').style.display = 'flex'; // 2. Yeni başarı penceresini ekranın ortasında aç
+                vtonModalKapat(); 
+                document.getElementById('basariModal').style.display = 'flex'; 
             } else {
                 bildirimGoster('Sunucu Hatası: ' + data, 'hata');
             }
@@ -566,6 +585,6 @@ if ($sepet_sayisi > 0) {
             bildirimGoster('Sistem Hatası oluştu.', 'hata');
         });
     }
-    </script>
+</script>
 </body>
 </html>
